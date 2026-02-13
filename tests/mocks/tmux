@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+
+# テスト用のtmuxモックスクリプト
+# このスクリプトをPATHに追加することで、実際のtmuxの代わりに実行される
+
+# モックデータディレクトリ（テスト全体で共有）
+MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+mkdir -p "$MOCK_DIR"
+
+# セッション一覧ファイル
+SESSIONS_FILE="$MOCK_DIR/sessions"
+touch "$SESSIONS_FILE"
+
+# デフォルトセッションを作成（初回のみ）
+if [ ! -s "$SESSIONS_FILE" ]; then
+    echo "session1" >> "$SESSIONS_FILE"
+    echo "session2" >> "$SESSIONS_FILE"
+    echo "ai-project" >> "$SESSIONS_FILE"
+fi
+
+command="$1"
+shift
+
+case "$command" in
+    has-session)
+        session=""
+        while [[ $# -gt 0 ]]; do
+            case $1 in
+                -t)
+                    session="$2"
+                    shift 2
+                    ;;
+                *)
+                    shift
+                    ;;
+            esac
+        done
+        grep -q "^${session}$" "$SESSIONS_FILE" 2>/dev/null
+        ;;
+
+    new-session)
+        session=""
+        while [[ $# -gt 0 ]]; do
+            case $1 in
+                -d)
+                    shift
+                    ;;
+                -s)
+                    session="$2"
+                    shift 2
+                    ;;
+                *)
+                    shift
+                    ;;
+            esac
+        done
+        if [ -n "$session" ]; then
+            echo "$session" >> "$SESSIONS_FILE"
+        fi
+        ;;
+
+    switch-client|attach-session)
+        # 何もしない（モックなので実際の切り替えは行わない）
+        exit 0
+        ;;
+
+    list-sessions)
+        cat "$SESSIONS_FILE" | sort | uniq
+        ;;
+
+    display-message)
+        format=""
+        while [[ $# -gt 0 ]]; do
+            case $1 in
+                -p)
+                    format="$2"
+                    shift 2
+                    ;;
+                *)
+                    shift
+                    ;;
+            esac
+        done
+        if [[ "$format" == "#W" ]]; then
+            echo "test-window"
+        fi
+        ;;
+
+    new-window|set)
+        # 何もしない（モックなので実際の操作は行わない）
+        exit 0
+        ;;
+
+    *)
+        echo "Unknown tmux command: $command" >&2
+        exit 1
+        ;;
+esac
