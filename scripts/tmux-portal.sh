@@ -63,16 +63,37 @@ switch_to_session() {
     fi
 }
 
+# 現在のセッション名を取得
+get_current_session_name() {
+    if [ -n "$TMUX" ]; then
+        tmux display-message -p '#S'
+    else
+        echo ""
+    fi
+}
+
 # セッションスイッチャー（selectコマンドを使用）
 show_session_switcher() {
+    local current_session
+    current_session=$(get_current_session_name)
+
     local sessions=()
     while IFS= read -r session; do
-        sessions+=("$session")
+        # 現在のセッションは候補から除外
+        if [ "$session" != "$current_session" ]; then
+            sessions+=("$session")
+        fi
     done < <(tmux list-sessions -F "#{session_name}" 2>/dev/null)
 
     if [ ${#sessions[@]} -eq 0 ]; then
-        echo "No sessions found" >&2
+        echo "No other sessions found" >&2
         return 1
+    fi
+
+    # セッション候補が1つの場合は自動選択
+    if [ ${#sessions[@]} -eq 1 ]; then
+        echo "${sessions[0]}"
+        return 0
     fi
 
     # テストモードの場合は最初のセッションを自動選択

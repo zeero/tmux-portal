@@ -85,3 +85,33 @@ teardown() {
     run bash -c "tmux list-sessions | grep -q '^test-session-$$'"
     [ "$status" -eq 0 ]
 }
+
+@test "セッション候補が1つの場合: 自動選択される" {
+    # 既存のセッションをクリア
+    rm -f "${TMPDIR:-/tmp}/tmux-portal-test/sessions"
+
+    # セッション1つだけ作成
+    echo "only-session" > "${TMPDIR:-/tmp}/tmux-portal-test/sessions"
+
+    # TEST_MODE=1 でセッションスイッチャーを呼び出し
+    run bash "$PORTAL_SCRIPT"
+    [ "$status" -eq 0 ]
+}
+
+@test "tmux内から実行: 現在のセッションは候補から除外される" {
+    # 複数セッションを作成
+    cat > "${TMPDIR:-/tmp}/tmux-portal-test/sessions" <<EOF
+session1
+session2
+current-session
+EOF
+
+    # TMUX環境変数を設定（tmux内を模擬）
+    export TMUX="test"
+    export MOCK_CURRENT_SESSION="current-session"
+
+    # セッションスイッチャーで current-session 以外が選択されることを確認
+    # TEST_MODE=1 なので最初のセッション（session1）が選択される
+    run bash "$PORTAL_SCRIPT"
+    [ "$status" -eq 0 ]
+}

@@ -81,8 +81,13 @@ case "$command" in
                     ;;
             esac
         done
+        # #W はウィンドウ名、#S はセッション名
         if [[ "$format" == "#W" ]]; then
             echo "test-window"
+        elif [[ "$format" == "#S" ]]; then
+            # TMUX環境変数が設定されている場合は、現在のセッション名を返す
+            # テスト用にデフォルトで "current-session" を返す
+            echo "${MOCK_CURRENT_SESSION:-current-session}"
         fi
         ;;
 
