@@ -115,3 +115,13 @@ EOF
     run bash "$PORTAL_SCRIPT"
     [ "$status" -eq 0 ]
 }
+
+@test "コマンド指定のみ: セッションスイッチャー経由で実行" {
+    # 既存のセッションを作成
+    echo "target-session" > "${TMPDIR:-/tmp}/tmux-portal-test/sessions"
+
+    # セッション指定なしでコマンドのみ指定
+    # TEST_MODE=1 なので "target-session" が自動選択されるはず
+    run bash "$PORTAL_SCRIPT" --command "aider"
+    [ "$status" -eq 0 ]
+}
