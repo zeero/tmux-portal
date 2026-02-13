@@ -98,6 +98,45 @@ teardown() {
     [ "$status" -eq 0 ]
 }
 
+@test "パス復元: 新規ウィンドウ作成時にカレントディレクトリを指定" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    # 現在のディレクトリを模擬
+    mkdir -p "/tmp/test-dir-$$"
+    cd "/tmp/test-dir-$$"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "ls"
+
+    [ "$status" -eq 0 ]
+
+    # tmux new-window が -c オプション付きで呼ばれたか確認
+    grep "new-window.*-c /tmp/test-dir-$$" "$LOG_FILE"
+
+    cd -
+    rm -rf "/tmp/test-dir-$$"
+}
+
+@test "パス復元: 新規セッション作成時にカレントディレクトリを指定" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    # 現在のディレクトリを模擬
+    mkdir -p "/tmp/test-sess-dir-$$"
+    cd "/tmp/test-sess-dir-$$"
+
+    # 存在しないセッションを指定
+    run bash "$PORTAL_SCRIPT" --session "brand-new-session-$$"
+
+    [ "$status" -eq 0 ]
+
+    # tmux new-session が -c オプション付きで呼ばれたか確認
+    grep "new-session.*-c /tmp/test-sess-dir-$$" "$LOG_FILE"
+
+    cd -
+    rm -rf "/tmp/test-sess-dir-$$"
+}
+
 @test "tmux内から実行: 現在のセッションは候補から除外される" {
     # 複数セッションを作成
     cat > "${TMPDIR:-/tmp}/tmux-portal-test/sessions" <<EOF
