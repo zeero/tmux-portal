@@ -11,6 +11,9 @@ mkdir -p "$MOCK_DIR"
 SESSIONS_FILE="$MOCK_DIR/sessions"
 touch "$SESSIONS_FILE"
 
+# ログファイル
+LOG_FILE="$MOCK_DIR/calls.log"
+
 # デフォルトセッションを作成（初回のみ）
 if [ ! -s "$SESSIONS_FILE" ]; then
     echo "session1" >> "$SESSIONS_FILE"
@@ -20,6 +23,9 @@ fi
 
 command="$1"
 shift
+
+# 全コマンドをログに記録
+echo "$command $@" >> "$LOG_FILE"
 
 case "$command" in
     has-session)
@@ -47,6 +53,10 @@ case "$command" in
                     ;;
                 -s)
                     session="$2"
+                    shift 2
+                    ;;
+                -c)
+                    # カレントディレクトリを無視（ログには記録されている）
                     shift 2
                     ;;
                 *)

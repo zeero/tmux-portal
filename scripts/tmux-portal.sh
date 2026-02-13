@@ -4,6 +4,7 @@
 SESSION=""
 COMMAND=""
 STATUS_STYLE=""
+START_DIR=$(pwd)
 
 # ヘルプメッセージを表示
 show_help() {
@@ -47,7 +48,8 @@ session_exists() {
 # セッション作成
 create_session() {
     local session_name="$1"
-    tmux new-session -d -s "$session_name"
+    local start_dir="$2"
+    tmux new-session -d -s "$session_name" -c "$start_dir"
 }
 
 # セッション切り替え
@@ -128,11 +130,12 @@ create_window_with_command() {
     local session_name="$1"
     local command="$2"
     local window_name="$3"
+    local start_dir="$4"
 
     if [ -n "$window_name" ]; then
-        tmux new-window -t "$session_name" -n "$window_name" "$command"
+        tmux new-window -c "$start_dir" -t "$session_name" -n "$window_name" "$command"
     else
-        tmux new-window -t "$session_name" "$command"
+        tmux new-window -c "$start_dir" -t "$session_name" "$command"
     fi
 }
 
@@ -198,7 +201,7 @@ main() {
 
     # セッションが存在しない場合は作成
     if ! session_exists "$SESSION"; then
-        create_session "$SESSION"
+        create_session "$SESSION" "$START_DIR"
     fi
 
     # ステータスラインスタイル設定
@@ -210,7 +213,7 @@ main() {
     if [ -n "$COMMAND" ]; then
         local window_name
         window_name=$(get_current_window_name)
-        create_window_with_command "$SESSION" "$COMMAND" "$window_name"
+        create_window_with_command "$SESSION" "$COMMAND" "$window_name" "$START_DIR"
     fi
 
     # セッションに切り替え
