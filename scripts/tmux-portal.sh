@@ -48,8 +48,7 @@ session_exists() {
 # セッション作成
 create_session() {
     local session_name="$1"
-    local start_dir="$2"
-    tmux new-session -d -s "$session_name" -c "$start_dir"
+    tmux new-session -d -s "$session_name"
 }
 
 # セッション切り替え
@@ -201,7 +200,7 @@ main() {
 
     # セッションが存在しない場合は作成
     if ! session_exists "$SESSION"; then
-        create_session "$SESSION" "$START_DIR"
+        create_session "$SESSION"
     fi
 
     # ステータスラインスタイル設定

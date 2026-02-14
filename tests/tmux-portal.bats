@@ -117,26 +117,6 @@ teardown() {
     rm -rf "/tmp/test-dir-$$"
 }
 
-@test "パス復元: 新規セッション作成時にカレントディレクトリを指定" {
-    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
-    LOG_FILE="$MOCK_DIR/calls.log"
-
-    # 現在のディレクトリを模擬
-    mkdir -p "/tmp/test-sess-dir-$$"
-    cd "/tmp/test-sess-dir-$$"
-
-    # 存在しないセッションを指定
-    run bash "$PORTAL_SCRIPT" --session "brand-new-session-$$"
-
-    [ "$status" -eq 0 ]
-
-    # tmux new-session が -c オプション付きで呼ばれたか確認
-    grep "new-session.*-c /tmp/test-sess-dir-$$" "$LOG_FILE"
-
-    cd -
-    rm -rf "/tmp/test-sess-dir-$$"
-}
-
 @test "tmux内から実行: 現在のセッションは候補から除外される" {
     # 複数セッションを作成
     cat > "${TMPDIR:-/tmp}/tmux-portal-test/sessions" <<EOF
@@ -152,5 +132,15 @@ EOF
     # セッションスイッチャーで current-session 以外が選択されることを確認
     # TEST_MODE=1 なので最初のセッション（session1）が選択される
     run bash "$PORTAL_SCRIPT"
+    [ "$status" -eq 0 ]
+}
+
+@test "コマンド指定のみ: セッションスイッチャー経由で実行" {
+    # 既存のセッションを作成
+    echo "target-session" > "${TMPDIR:-/tmp}/tmux-portal-test/sessions"
+
+    # セッション指定なしでコマンドのみ指定
+    # TEST_MODE=1 なので "target-session" が自動選択されるはず
+    run bash "$PORTAL_SCRIPT" --command "aider"
     [ "$status" -eq 0 ]
 }
