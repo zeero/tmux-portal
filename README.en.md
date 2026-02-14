@@ -1,17 +1,14 @@
 # tmux-portal
 
-A tmux plugin that streamlines session switching, new window creation, and command execution in a single workflow.
+A tmux plugin designed to manage AI agent workflows in dedicated sessions and quickly switch between them and your regular development environment.
 
-- Use case:
-  - Manage AI agent sessions in dedicated tmux sessions for focused work
+It streamlines session switching, new window creation, command execution, and status line customization into a single workflow.
 
 ## Features
 
-- **Session Switcher** - Quickly jump between tmux sessions
-- **Current session excluded from switch candidates** - Only shows other sessions when switching
-- **Session Auto-select** - No menu when there's only one option
-- **Custom Status Styles** - Specify status line colors for visual differentiation
-- **Command Integration** - Launch commands in new windows within specific sessions
+- **Session Switcher** - Quickly select and switch from sessions other than the current one (auto-selects if only one candidate exists)
+- **Command Integration** - Launch a command in a new window immediately upon switching sessions
+- **Custom Status Styles** - Visually identify sessions by specifying status line colors
 
 ## Installation
 
@@ -41,76 +38,35 @@ Reload tmux: `tmux source-file ~/.tmux.conf`
 
 ## Usage
 
-| Option | Description |
-|--------|-------------|
-| `-s, --session <name>` | Session name (creates if missing) |
-| `-c, --command <cmd>` | Command to run in new window |
-| `--status-style <style>` | tmux status bar style (e.g., `fg=black,bg=yellow`) |
-| `-h, --help` | Show help message |
-
-### Switch between a dedicated AI agent session and regular sessions
+### Basic Usage
+Display the session switcher and move to the selected session.
 
 ```bash
+tmux-portal
+```
+
+Displays an interactive menu of all sessions except your current one. Select a session by its number.
+
+#### Keybinding Example
+Add the following to your `.tmux.conf` for quick access:
+
+```tmux
+bind-key C-p run-shell "tmux-portal"
+```
+
+### Switching to a Dedicated AI Agent Session
+Create and switch to a session dedicated to an AI agent (e.g., Claude) and execute a command.
+
+```bash
+# Create/switch to "claude" session and run the "claude" command
 tmux-portal -s claude -c claude --status-style "fg=black,bg=orange"
 
-# Return to regular session
+# Return to a regular session (select from the switcher)
 tmux-portal
 ```
 
-### Basic Session Switching
-
-```bash
-# Show session switcher and jump to selected session
-tmux-portal
-```
-
-Displays an interactive menu of all sessions except your current one. Select with numbers.
-
-### Creating/Switching to Named Sessions
-
-```bash
-# Switch to (or create) a specific session
-tmux-portal --session my-project
-tmux-portal -s my-project
-```
-
-If the session doesn't exist, tmux-portal creates it before switching.
-
-### Running Commands in Sessions
-
-```bash
-# Launch claude in a session after selecting from menu
-tmux-portal --command claude
-
-# Launch claude in a specific session
-tmux-portal -s claude -c claude
-```
-
-Creates a new window in the target session and runs the command.
-
-### Visual Differentiation with Status Styles
-
-```bash
-# Color-code your Claude session with yellow status bar
-tmux-portal -s claude --status-style "fg=black,bg=yellow"
-
-# Different color for Codex session
-tmux-portal -s codex --status-style "fg=white,bg=blue"
-```
-
-Helps identify which AI agent you're working with at a glance.
-
-## Example Workflow
-
-```bash
-# Set up color-coded sessions for different AI agents
-tmux-portal -s claude -c claude --status-style "fg=black,bg=yellow"
-tmux-portal -s codex -c codex --status-style "fg=white,bg=blue"
-tmux-portal -s cursor -c cursor-agent --status-style "fg=black,bg=green"
-
-# Later, quickly switch between them
-tmux-portal  # Shows: codex, cursor (excludes current session)
-```
+## Options
+(New section - to be added in another issue)
 
 ## Requirements
 

@@ -1,17 +1,14 @@
 # tmux-portal
 
-tmuxのセッション切り替えを効率化するプラグインです。セッション切り替え、新規ウィンドウ作成、指定したコマンドを実行まで一括で行う。
+AIエージェントとの作業を専用のtmuxセッションで管理し、通常の開発セッションと素早く切り替えるためのプラグインです。
 
-- ユースケース:
-  - AIエージェントとのセッションを専用のtmuxセッションに切り出して集中管理する
+セッションの切り替え、新規ウィンドウの作成、コマンド実行、ステータスラインのカスタマイズまで一括で行えます。
 
 ## Features
 
-- **セッションスイッチャー** - tmuxセッション間を素早く移動
-- **現在のセッションはスイッチ候補から除外** - 切り替え時は他のセッションのみ表示
-- **セッション自動選択** - 選択肢が1つだけの場合はメニューを表示せず自動選択
+- **セッションスイッチャー** - 現在のセッション以外から素早く選択・切り替え（候補が1つなら自動選択）
+- **コマンド統合** - セッション切り替えと同時に新規ウィンドウでコマンドを実行
 - **カスタムステータススタイル** - ステータスラインの色を指定して視覚的に識別
-- **コマンド統合** - 特定のセッション内に新規ウィンドウを作成してコマンドを実行
 
 ## Installation
 
@@ -41,76 +38,35 @@ tmuxを再読み込み: `tmux source-file ~/.tmux.conf`
 
 ## Usage
 
-| Option | Description |
-|--------|-------------|
-| `-s, --session <name>` | セッション名（存在しない場合は作成） |
-| `-c, --command <cmd>` | 新規ウィンドウで実行するコマンド |
-| `--status-style <style>` | tmuxステータスバースタイル（例: `fg=black,bg=yellow`） |
-| `-h, --help` | ヘルプメッセージを表示 |
-
-### AIエージェント専用のセッションと相互に切り替える
+### 基本的な使い方
+セッションスイッチャーを表示して、選択したセッションに移動します。
 
 ```bash
-tmux-portal -s claude -c claude --status-style "fg=black,bg=orange"
-
-# 通常セッションに戻る
-tmux-portal
-```
-
-### 基本的なセッション切り替え
-
-```bash
-# セッションスイッチャーを表示して選択したセッションに移動
 tmux-portal
 ```
 
 現在のセッション以外のすべてのセッションを対話的なメニューで表示します。数字で選択してください。
 
-### 名前付きセッションの作成/切り替え
+#### キーバインド例
+`.tmux.conf` に以下のように設定することで、素早くアクセスできます。
 
-```bash
-# 特定のセッションに切り替え（存在しない場合は作成）
-tmux-portal --session my-project
-tmux-portal -s my-project
+```tmux
+bind-key C-p run-shell "tmux-portal"
 ```
 
-セッションが存在しない場合、tmux-portalは切り替える前に作成します。
-
-### セッション内でのコマンド実行
-
-```bash
-# メニューからセッションを選択してclaudeを起動
-tmux-portal --command claude
-
-# 特定のセッションでclaudeを起動
-tmux-portal -s claude -c claude
-```
-
-対象セッション内に新規ウィンドウを作成してコマンドを実行します。
-
-### ステータススタイルによる視覚的な識別
+### AIエージェント専用セッションとの切り替え
+AIエージェント（例：Claude）専用のセッションを作成し、コマンドを実行します。
 
 ```bash
-# Claudeセッションを黄色のステータスバーで色分け
-tmux-portal -s claude --status-style "fg=black,bg=yellow"
+# Claudeセッションを作成/切り替えして、claudeコマンドを実行
+tmux-portal -s claude -c claude --status-style "fg=black,bg=orange"
 
-# Codexセッションには別の色を設定
-tmux-portal -s codex --status-style "fg=white,bg=blue"
+# 通常セッションに戻る（スイッチャーから選択）
+tmux-portal
 ```
 
-どのAIエージェントを使用しているか一目で識別できます。
-
-## Example Workflow
-
-```bash
-# 異なるAIエージェント用に色分けされたセッションを設定
-tmux-portal -s claude -c claude --status-style "fg=black,bg=yellow"
-tmux-portal -s codex -c codex --status-style "fg=white,bg=blue"
-tmux-portal -s cursor -c cursor-agent --status-style "fg=black,bg=green"
-
-# その後、素早く切り替え
-tmux-portal  # 表示内容: codex, cursor（現在のセッションは除外）
-```
+## Options
+(新規セクション - 別イシューで追加)
 
 ## Requirements
 
