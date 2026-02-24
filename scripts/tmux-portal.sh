@@ -4,7 +4,7 @@
 SESSION=""
 COMMAND=""
 STATUS_STYLE=""
-START_DIR=$(pwd)
+START_DIR=$(tmux display-message -p '#{pane_current_path}' 2>/dev/null || pwd)
 
 # ヘルプメッセージを表示
 show_help() {

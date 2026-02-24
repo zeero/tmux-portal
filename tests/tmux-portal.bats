@@ -102,9 +102,8 @@ teardown() {
     MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
     LOG_FILE="$MOCK_DIR/calls.log"
 
-    # 現在のディレクトリを模擬
-    mkdir -p "/tmp/test-dir-$$"
-    cd "/tmp/test-dir-$$"
+    # モックに返させるペインのパスを設定
+    export MOCK_CURRENT_PATH="/tmp/test-dir-$$"
 
     run bash "$PORTAL_SCRIPT" --session "session1" --command "ls"
 
@@ -113,8 +112,7 @@ teardown() {
     # tmux new-window が -c オプション付きで呼ばれたか確認
     grep "new-window.*-c /tmp/test-dir-$$" "$LOG_FILE"
 
-    cd -
-    rm -rf "/tmp/test-dir-$$"
+    unset MOCK_CURRENT_PATH
 }
 
 @test "tmux内から実行: 現在のセッションは候補から除外される" {

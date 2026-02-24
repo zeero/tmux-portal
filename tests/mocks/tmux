@@ -91,13 +91,13 @@ case "$command" in
                     ;;
             esac
         done
-        # #W はウィンドウ名、#S はセッション名
+        # #W はウィンドウ名、#S はセッション名、#{pane_current_path} は現在のペインのパス
         if [[ "$format" == "#W" ]]; then
             echo "test-window"
         elif [[ "$format" == "#S" ]]; then
-            # TMUX環境変数が設定されている場合は、現在のセッション名を返す
-            # テスト用にデフォルトで "current-session" を返す
             echo "${MOCK_CURRENT_SESSION:-current-session}"
+        elif [[ "$format" == "#{pane_current_path}" ]]; then
+            echo "${MOCK_CURRENT_PATH:-$PWD}"
         fi
         ;;
 
