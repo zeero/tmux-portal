@@ -64,8 +64,8 @@ teardown() {
 
     # status-style が設定されたことを確認
     grep "set.*status-style.*fg=black,bg=yellow" "$LOG_FILE"
-    # fg/bg を入れ替えた window-status-current-style が自動設定されたことを確認
-    grep "set.*window-status-current-style.*fg=yellow,bg=black" "$LOG_FILE"
+    # fg/bg を入れ替えて bold を付けた window-status-current-style が自動設定されたことを確認
+    grep "set.*window-status-current-style.*fg=yellow,bg=black,bold" "$LOG_FILE"
 }
 
 @test "ステータスラインスタイル設定: --window-status-current-style で自動導出を上書き" {

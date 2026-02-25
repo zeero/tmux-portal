@@ -155,7 +155,7 @@ set_status_style() {
             fg=$(echo "$style" | tr ',' '\n' | grep '^fg=' | cut -d= -f2)
             bg=$(echo "$style" | tr ',' '\n' | grep '^bg=' | cut -d= -f2)
             if [ -n "$fg" ] && [ -n "$bg" ]; then
-                current_style="fg=${bg},bg=${fg}"
+                current_style="fg=${bg},bg=${fg},bold"
             fi
         fi
 
