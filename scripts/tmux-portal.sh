@@ -224,16 +224,16 @@ main() {
         create_session "$SESSION"
     fi
 
-    # ステータスラインスタイル設定
-    if [ -n "$STATUS_STYLE" ]; then
-        set_status_style "$SESSION" "$STATUS_STYLE" "$WINDOW_STATUS_CURRENT_STYLE"
-    fi
-
     # ケース3: コマンド指定あり
     if [ -n "$COMMAND" ]; then
         local window_name
         window_name=$(get_current_window_name)
         create_window_with_command "$SESSION" "$COMMAND" "$window_name" "$START_DIR"
+    fi
+
+    # ウィンドウ作成後にスタイルを設定（new-window 後にカレントウィンドウが変わるため）
+    if [ -n "$STATUS_STYLE" ]; then
+        set_status_style "$SESSION" "$STATUS_STYLE" "$WINDOW_STATUS_CURRENT_STYLE"
     fi
 
     # セッションに切り替え
