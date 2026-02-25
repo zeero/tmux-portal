@@ -100,6 +100,14 @@ tmux-portal -s codex --status-style "fg=white,bg=blue"
 
 Helps identify which AI agent you're working with at a glance.
 
+> [!TIP]
+> tmux defaults `status-left-length` to **10**, so session names may be truncated.
+> Add the following to `~/.tmux.conf` to expand the display width:
+>
+> ```tmux
+> set -g status-left-length 20
+> ```
+
 ## Example Workflow
 
 ```bash

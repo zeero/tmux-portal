@@ -100,6 +100,14 @@ tmux-portal -s codex --status-style "fg=white,bg=blue"
 
 どのAIエージェントを使用しているか一目で識別できます。
 
+> [!TIP]
+> tmux のデフォルト設定では `status-left-length` が **10** のため、セッション名が途中で切れることがあります。
+> `~/.tmux.conf` に以下を追加して表示幅を広げてください。
+>
+> ```tmux
+> set -g status-left-length 20
+> ```
+
 ## Example Workflow
 
 ```bash
