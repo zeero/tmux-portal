@@ -55,6 +55,43 @@ teardown() {
     [ "$status" -eq 0 ]
 }
 
+@test "ステータスラインスタイル設定: fg/bg 指定時に window-status-current-style を自動導出" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --status-style "fg=black,bg=yellow"
+    [ "$status" -eq 0 ]
+
+    # status-style が設定されたことを確認
+    grep "set.*status-style.*fg=black,bg=yellow" "$LOG_FILE"
+    # fg/bg を入れ替えた window-status-current-style が自動設定されたことを確認
+    grep "set.*window-status-current-style.*fg=yellow,bg=black" "$LOG_FILE"
+}
+
+@test "ステータスラインスタイル設定: --window-status-current-style で自動導出を上書き" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" \
+        --status-style "fg=black,bg=yellow" \
+        --window-status-current-style "fg=red,bg=white"
+    [ "$status" -eq 0 ]
+
+    # 明示指定した window-status-current-style が使われることを確認
+    grep "set.*window-status-current-style.*fg=red,bg=white" "$LOG_FILE"
+}
+
+@test "ステータスラインスタイル設定: fg/bg が揃っていない場合は window-status-current-style を設定しない" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --status-style "bold"
+    [ "$status" -eq 0 ]
+
+    # window-status-current-style が呼ばれていないことを確認
+    ! grep "window-status-current-style" "$LOG_FILE"
+}
+
 @test "tmux内から実行" {
     export TMUX="test"
     run bash "$PORTAL_SCRIPT" --session "session1"
