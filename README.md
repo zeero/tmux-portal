@@ -46,6 +46,7 @@ tmuxを再読み込み: `tmux source-file ~/.tmux.conf`
 | `-s, --session <name>` | セッション名（存在しない場合は作成） |
 | `-c, --command <cmd>` | 新規ウィンドウで実行するコマンド |
 | `--status-style <style>` | tmuxステータスバースタイル（例: `fg=black,bg=yellow`） |
+| `--window-status-current-style <style>` | 現在タブのスタイル（省略時は `--status-style` の fg/bg を入れ替えて自動設定） |
 | `-h, --help` | ヘルプメッセージを表示 |
 
 ### AIエージェント専用のセッションと相互に切り替える
@@ -92,13 +93,19 @@ tmux-portal -s claude -c claude
 
 ```bash
 # Claudeセッションを黄色のステータスバーで色分け
+# → 現在タブの文字色は fg=yellow,bg=black に自動設定される
 tmux-portal -s claude --status-style "fg=black,bg=yellow"
 
 # Codexセッションには別の色を設定
 tmux-portal -s codex --status-style "fg=white,bg=blue"
+
+# 現在タブのスタイルを明示指定したい場合
+tmux-portal -s aider --status-style "fg=black,bg=green" --window-status-current-style "fg=green,bg=black,bold"
 ```
 
 どのAIエージェントを使用しているか一目で識別できます。
+
+`--status-style` に `fg` と `bg` を両方指定した場合、現在タブ（`window-status-current-style`）には自動的に fg/bg を入れ替えたスタイルが設定されます。`--window-status-current-style` で上書きすることも可能です。
 
 > [!TIP]
 > tmux のデフォルト設定では `status-left-length` が **10** のため、セッション名が途中で切れることがあります。
