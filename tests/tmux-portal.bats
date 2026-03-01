@@ -65,7 +65,7 @@ teardown() {
     # status-style が設定されたことを確認
     grep "set.*status-style.*fg=black,bg=yellow" "$LOG_FILE"
     # fg/bg を入れ替えて bold を付けた window-status-current-style が自動設定されたことを確認
-    grep "set.*window-status-current-style.*fg=yellow,bg=black,bold" "$LOG_FILE"
+    grep "set -w.*window-status-current-style.*fg=yellow,bg=black,bold" "$LOG_FILE"
 }
 
 @test "ステータスラインスタイル設定: --window-status-current-style で自動導出を上書き" {
@@ -78,7 +78,7 @@ teardown() {
     [ "$status" -eq 0 ]
 
     # 明示指定した window-status-current-style が使われることを確認
-    grep "set.*window-status-current-style.*fg=red,bg=white" "$LOG_FILE"
+    grep "set -w.*window-status-current-style.*fg=red,bg=white" "$LOG_FILE"
 }
 
 @test "ステータスラインスタイル設定: fg/bg が揃っていない場合は window-status-current-style を設定しない" {
@@ -89,7 +89,7 @@ teardown() {
     [ "$status" -eq 0 ]
 
     # window-status-current-style が呼ばれていないことを確認
-    ! grep "window-status-current-style" "$LOG_FILE"
+    ! grep "set -w.*window-status-current-style" "$LOG_FILE"
 }
 
 @test "tmux内から実行" {

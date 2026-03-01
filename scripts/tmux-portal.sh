@@ -160,7 +160,7 @@ set_status_style() {
         fi
 
         if [ -n "$current_style" ]; then
-            tmux set -t "$session_name" window-status-current-style "$current_style"
+            tmux set -w -t "$session_name" window-status-current-style "$current_style"
         fi
     fi
 }
