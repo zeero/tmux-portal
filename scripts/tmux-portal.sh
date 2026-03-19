@@ -19,6 +19,7 @@ OPTIONS:
     -c, --command <cmd>         新規ウィンドウで実行するコマンド
     --status-style <style>                ステータスラインスタイル（tmux形式）
     --window-status-current-style <style> 現在タブのスタイル（省略時はstatus-styleのfg/bgを入れ替えて自動設定）
+    --                          以降の引数をコマンドとして扱う（-c の代替）
     -h, --help                  このヘルプを表示
 
 EXAMPLES:
@@ -187,6 +188,11 @@ while [[ $# -gt 0 ]]; do
         -h|--help)
             show_help
             exit 0
+            ;;
+        --)
+            shift
+            COMMAND="$*"
+            break
             ;;
         *)
             echo "Unknown option: $1" >&2
