@@ -225,6 +225,10 @@ main() {
         SESSION="$selected_session"
     fi
 
+    # セッション作成後はターゲット解決がズレるのでウィンドウ名は先に取得する
+    local window_name
+    window_name=$(get_current_window_name)
+
     # セッションが存在しない場合は作成
     if ! session_exists "$SESSION"; then
         create_session "$SESSION"
@@ -237,8 +241,6 @@ main() {
 
     # ケース3: コマンド指定あり
     if [ -n "$COMMAND" ]; then
-        local window_name
-        window_name=$(get_current_window_name)
         create_window_with_command "$SESSION" "$COMMAND" "$window_name" "$START_DIR"
     fi
 
