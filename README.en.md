@@ -94,13 +94,19 @@ Creates a new window in the target session and runs the command.
 
 ```bash
 # Color-code your Claude session with yellow status bar
+# → Current tab style is auto-set to fg=yellow,bg=black
 tmux-portal -s claude --status-style "fg=black,bg=yellow"
 
 # Different color for Codex session
 tmux-portal -s codex --status-style "fg=white,bg=blue"
+
+# Explicitly specify the current tab style
+tmux-portal -s aider --status-style "fg=black,bg=green" --window-status-current-style "fg=green,bg=black,bold"
 ```
 
 Helps identify which AI agent you're working with at a glance.
+
+When both `fg` and `bg` are specified in `--status-style`, the current tab (`window-status-current-style`) is automatically styled with swapped fg/bg. You can override this with `--window-status-current-style`.
 
 > [!TIP]
 > tmux defaults `status-left-length` to **10**, so session names may be truncated.
