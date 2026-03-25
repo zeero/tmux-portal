@@ -179,3 +179,40 @@ EOF
     run bash "$PORTAL_SCRIPT" --command "aider"
     [ "$status" -eq 0 ]
 }
+
+@test "direnvオプション: direnvと.envrcが存在する場合はdirenv exec経由で実行" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    # .envrcが存在するディレクトリを用意
+    local test_dir="$MOCK_DIR/project"
+    mkdir -p "$test_dir"
+    touch "$test_dir/.envrc"
+
+    export MOCK_CURRENT_PATH="$test_dir"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --direnv
+    [ "$status" -eq 0 ]
+
+    # direnv exec 経由でコマンドが実行されたことを確認
+    grep "new-window.*direnv exec.*aider" "$LOG_FILE"
+}
+
+@test "direnvオプション: .envrcが存在しない場合は通常実行" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    # .envrcが存在しないディレクトリ
+    local test_dir="$MOCK_DIR/no-envrc"
+    mkdir -p "$test_dir"
+
+    export MOCK_CURRENT_PATH="$test_dir"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --direnv
+    [ "$status" -eq 0 ]
+
+    # direnv exec が含まれないことを確認
+    ! grep "direnv exec" "$LOG_FILE"
+    # コマンド自体は実行されることを確認
+    grep "new-window.*aider" "$LOG_FILE"
+}

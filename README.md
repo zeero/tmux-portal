@@ -47,6 +47,7 @@ tmuxを再読み込み: `tmux source-file ~/.tmux.conf`
 | `-c, --command <cmd>` | 新規ウィンドウで実行するコマンド |
 | `--status-style <style>` | tmuxステータスバースタイル（例: `fg=black,bg=yellow`） |
 | `--window-status-current-style <style>` | 現在タブのスタイル（省略時は `--status-style` の fg/bg を入れ替えて自動設定） |
+| `--direnv` | コマンド実行時に `direnv exec` 経由で環境変数をロード |
 | `-h, --help` | ヘルプメッセージを表示 |
 
 ### AIエージェント専用のセッションと相互に切り替える

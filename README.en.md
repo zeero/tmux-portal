@@ -46,6 +46,8 @@ Reload tmux: `tmux source-file ~/.tmux.conf`
 | `-s, --session <name>` | Session name (creates if missing) |
 | `-c, --command <cmd>` | Command to run in new window |
 | `--status-style <style>` | tmux status bar style (e.g., `fg=black,bg=yellow`) |
+| `--window-status-current-style <style>` | Current tab style (defaults to swapped fg/bg from `--status-style`) |
+| `--direnv` | Load environment variables via `direnv exec` when running commands |
 | `-h, --help` | Show help message |
 
 ### Switch between a dedicated AI agent session and regular sessions

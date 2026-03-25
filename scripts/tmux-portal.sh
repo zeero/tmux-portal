@@ -5,6 +5,7 @@ SESSION=""
 COMMAND=""
 STATUS_STYLE=""
 WINDOW_STATUS_CURRENT_STYLE=""
+USE_DIRENV=false
 START_DIR=$(tmux display-message -p '#{pane_current_path}' 2>/dev/null || pwd)
 
 # ヘルプメッセージを表示
@@ -19,6 +20,7 @@ OPTIONS:
     -c, --command <cmd>         新規ウィンドウで実行するコマンド
     --status-style <style>                ステータスラインスタイル（tmux形式）
     --window-status-current-style <style> 現在タブのスタイル（省略時はstatus-styleのfg/bgを入れ替えて自動設定）
+    --direnv                   コマンド実行時にdirenv経由で環境変数をロード
     --                          以降の引数をコマンドとして扱う（-c の代替）
     -h, --help                  このヘルプを表示
 
@@ -39,6 +41,9 @@ EXAMPLES:
 
     # ステータスラインのスタイルを設定
     tmux-portal -s my-project --status-style "fg=black,bg=yellow"
+
+    # direnv経由でコマンド実行（.envrcの環境変数をロード）
+    tmux-portal -s my-project -c aider --direnv
 EOF
 }
 
@@ -133,6 +138,11 @@ create_window_with_command() {
     local command="$2"
     local window_name="$3"
     local start_dir="$4"
+    local use_direnv="$5"
+
+    if [ "$use_direnv" = true ] && command -v direnv &>/dev/null && [ -f "${start_dir}/.envrc" ]; then
+        command="direnv exec '${start_dir}' ${command}"
+    fi
 
     if [ -n "$window_name" ]; then
         tmux new-window -c "$start_dir" -t "$session_name" -n "$window_name" "$command"
@@ -176,6 +186,10 @@ while [[ $# -gt 0 ]]; do
         -c|--command)
             COMMAND="$2"
             shift 2
+            ;;
+        --direnv)
+            USE_DIRENV=true
+            shift
             ;;
         --status-style)
             STATUS_STYLE="$2"
@@ -241,7 +255,7 @@ main() {
 
     # ケース3: コマンド指定あり
     if [ -n "$COMMAND" ]; then
-        create_window_with_command "$SESSION" "$COMMAND" "$window_name" "$START_DIR"
+        create_window_with_command "$SESSION" "$COMMAND" "$window_name" "$START_DIR" "$USE_DIRENV"
     fi
 
     # ウィンドウ作成後に再設定（new-window でカレントウィンドウが変わるため）
