@@ -216,3 +216,27 @@ EOF
     # コマンド自体は実行されることを確認
     grep "new-window.*aider" "$LOG_FILE"
 }
+
+@test "ウィンドウ名にプリフィクスを指定" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    export TMUX="test"
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --window-prefix "prefix:"
+    [ "$status" -eq 0 ]
+
+    # new-window が指定されたプリフィクス付きで呼ばれたか確認
+    # get_current_window_name が "test-window" を返すので、"prefix:test-window" になるはず
+    grep "new-window.*-n prefix:test-window" "$LOG_FILE"
+}
+
+@test "ウィンドウ名にプリフィクスを指定 (短縮オプション)" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    export TMUX="test"
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" -p "p:"
+    [ "$status" -eq 0 ]
+
+    grep "new-window.*-n p:test-window" "$LOG_FILE"
+}

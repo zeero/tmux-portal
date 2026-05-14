@@ -6,6 +6,7 @@ COMMAND=""
 STATUS_STYLE=""
 WINDOW_STATUS_CURRENT_STYLE=""
 USE_DIRENV=false
+WINDOW_PREFIX=""
 START_DIR=$(tmux display-message -p '#{pane_current_path}' 2>/dev/null || pwd)
 
 # ヘルプメッセージを表示
@@ -18,6 +19,7 @@ tmux-portalは、AIエージェントセッションを効率的に管理する�
 OPTIONS:
     -s, --session <name>        セッション名を指定（なければ作成）
     -c, --command <cmd>         新規ウィンドウで実行するコマンド
+    -p, --window-prefix <str>   新規ウィンドウ名のプリフィクスを指定
     --status-style <style>                ステータスラインスタイル（tmux形式）
     --window-status-current-style <style> 現在タブのスタイル（省略時はstatus-styleのfg/bgを入れ替えて自動設定）
     --direnv                   コマンド実行時にdirenv経由で環境変数をロード
@@ -187,6 +189,10 @@ while [[ $# -gt 0 ]]; do
             COMMAND="$2"
             shift 2
             ;;
+        -p|--window-prefix)
+            WINDOW_PREFIX="$2"
+            shift 2
+            ;;
         --direnv)
             USE_DIRENV=true
             shift
@@ -242,6 +248,11 @@ main() {
     # セッション作成後はターゲット解決がズレるのでウィンドウ名は先に取得する
     local window_name
     window_name=$(get_current_window_name)
+
+    # プリフィクスが指定されている場合は付与
+    if [ -n "$WINDOW_PREFIX" ]; then
+        window_name="${WINDOW_PREFIX}${window_name}"
+    fi
 
     # セッションが存在しない場合は作成
     if ! session_exists "$SESSION"; then
