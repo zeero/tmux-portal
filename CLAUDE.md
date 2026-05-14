@@ -29,12 +29,25 @@ bash -n scripts/tmux-portal.sh
 bash -x scripts/tmux-portal.sh --help
 ```
 
+## プロジェクト構成
+
+```
+tmux-portal/
+├── portal.tmux              # TPMエントリポイント（scripts/ をPATHに追加）
+├── scripts/
+│   └── tmux-portal.sh       # メインスクリプト（全機能を実装）
+├── tests/
+│   ├── tmux-portal.bats     # テストケース（bats-core）
+│   ├── test_helper.bash     # テストヘルパー（環境セットアップ/クリーンアップ）
+│   ├── mocks/
+│   │   ├── tmux             # tmuxコマンドのモック（実行可能スクリプト）
+│   │   └── tmux_mock.bash   # モック関数定義（sourceされる）
+│   └── CLAUDE.md            # テストケース概要・カバレッジマトリクス
+├── README.md                # ドキュメント（日本語）
+└── README.en.md             # ドキュメント（英語）
+```
+
 ## アーキテクチャ
-
-### TPMプラグイン構造
-
-- **portal.tmux**: TPMエントリポイント。TPMがプラグインを読み込む際に実行され、`scripts/` ディレクトリをPATHに追加する
-- **scripts/tmux-portal.sh**: メインスクリプト。すべての機能を実装
 
 ### 実行環境の検出
 
@@ -77,6 +90,13 @@ main() 関数は以下の3つのケースを処理します:
 ### ステータスラインのカスタマイズ
 
 `--status-style` オプションでセッション単位のステータスライン設定が可能。AIエージェント別に色分けして識別しやすくする用途を想定。
+
+## ドキュメント管理
+
+READMEは日本語版（`README.md`）と英語版（`README.en.md`）の二言語で管理している。機能追加・変更時は両方を同期すること。
+
+- **SSOT**: `scripts/tmux-portal.sh` の `show_help()` がオプション一覧の信頼できる情報源
+- **同期チェック**: Usageテーブル、セクション構成、使用例が両言語で対応しているか確認
 
 ## コード修正時の注意点
 
