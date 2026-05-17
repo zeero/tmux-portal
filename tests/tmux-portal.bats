@@ -240,3 +240,28 @@ EOF
 
     grep "new-window.*-n p:test-window" "$LOG_FILE"
 }
+
+@test "ウィンドウ名にプリフィクスを指定: 既にプリフィクスが含まれている場合は付与しない" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    export TMUX="test"
+    
+    # 1. 先頭にある場合
+    export MOCK_CURRENT_WINDOW="prefix:test-window"
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --window-prefix "prefix:"
+    [ "$status" -eq 0 ]
+    grep "new-window.*-n prefix:test-window" "$LOG_FILE"
+    ! grep "new-window.*-n prefix:prefix:test-window" "$LOG_FILE"
+    
+    # 2. 途中に含まれている場合
+    rm -f "$LOG_FILE"
+    export MOCK_CURRENT_WINDOW="my-prefix:test"
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --window-prefix "prefix:"
+    [ "$status" -eq 0 ]
+    # 既に "prefix:" が含まれているので付与されない
+    grep "new-window.*-n my-prefix:test" "$LOG_FILE"
+    ! grep "new-window.*-n prefix:my-prefix:test" "$LOG_FILE"
+
+    unset MOCK_CURRENT_WINDOW
+}

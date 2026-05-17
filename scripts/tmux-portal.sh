@@ -249,8 +249,8 @@ main() {
     local window_name
     window_name=$(get_current_window_name)
 
-    # プリフィクスが指定されている場合は付与
-    if [ -n "$WINDOW_PREFIX" ]; then
+    # プリフィクスが指定されている場合は付与（既にどこかに含まれている場合はスキップ）
+    if [ -n "$WINDOW_PREFIX" ] && [[ "$window_name" != *"$WINDOW_PREFIX"* ]]; then
         window_name="${WINDOW_PREFIX}${window_name}"
     fi
 
