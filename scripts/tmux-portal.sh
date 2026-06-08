@@ -97,7 +97,7 @@ show_session_switcher() {
     done < <(tmux list-sessions -F "#{session_name}" 2>/dev/null)
 
     if [ ${#sessions[@]} -eq 0 ]; then
-        echo "No other sessions found" >&2
+        tmux display-message "tmux-portal: No other sessions found"
         return 1
     fi
 
@@ -122,6 +122,7 @@ show_session_switcher() {
     done
 
     # selectコマンドが中断された場合
+    tmux display-message "tmux-portal: Selection cancelled"
     return 1
 }
 
