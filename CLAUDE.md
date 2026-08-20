@@ -44,8 +44,7 @@ tmux-portal/
 │   ├── tmux-portal.bats     # テストケース（bats-core）
 │   ├── test_helper.bash     # テストヘルパー（環境セットアップ/クリーンアップ）
 │   └── mocks/
-│       ├── tmux             # tmuxコマンドのモック（実行可能スクリプト。実際に使われるのはこちら）
-│       └── tmux_mock.bash   # 旧モック関数定義（下記「モックの仕組み」参照）
+│       └── tmux             # tmuxコマンドのモック（実行可能スクリプト）
 ├── README.md                # ドキュメント（日本語）
 └── README.en.md             # ドキュメント（英語）
 ```
@@ -107,12 +106,11 @@ tmux-portal/
 
 テストでは実際のtmuxセッションを操作せず、モックを使用します:
 
-1. **tests/mocks/tmux**: 実行可能なモックスクリプト。`setup()` が PATH の先頭に `tests/mocks` を追加することで、実際の `tmux` の代わりに実行される。テスト対象は `run bash "$PORTAL_SCRIPT"` と別プロセスで起動されるため、モックは**実行可能ファイルである必要がある**
-2. **tests/mocks/tmux_mock.bash**: `test_helper.bash` が source しているが、`export -f` されていないため子プロセスには届かず、現状どのテストからも参照されていない。ここを直してもテスト挙動は変わらない
-3. **共有データ**: モックは `${TMPDIR:-/tmp}/tmux-portal-test` にセッション一覧（`sessions`）と全コマンドの呼び出しログ（`calls.log`）を保存する。tmux 引数のアサーションは `calls.log` を grep して行う
-4. **初期セッション**: `sessions` が空のとき `session1` / `session2` / `ai-project` を自動投入する。テストはこの3つを前提に書かれている
-5. **カレント状態の差し替え**: `MOCK_CURRENT_SESSION` / `MOCK_CURRENT_WINDOW` / `MOCK_CURRENT_PATH` を export すると `display-message -p` の戻り値を制御できる
-6. **クリーンアップ**: `setup_test_env()` と `teardown_test_env()` でテストごとにモックデータディレクトリごと削除する
+1. **tests/mocks/tmux**: 実行可能なモックスクリプト。`setup()` が PATH の先頭に `tests/mocks` を追加することで、実際の `tmux` の代わりに実行される。**モックはシェル関数ではなく実行可能ファイルでなければならない**（テスト対象を `run bash "$PORTAL_SCRIPT"` と別プロセスで起動するため、`export -f` しない関数定義は届かない）
+2. **共有データ**: モックは `${TMPDIR:-/tmp}/tmux-portal-test` にセッション一覧（`sessions`）と全コマンドの呼び出しログ（`calls.log`）を保存する。tmux 引数のアサーションは `calls.log` を grep して行う
+3. **初期セッション**: `sessions` が空のとき `session1` / `session2` / `ai-project` を自動投入する。テストはこの3つを前提に書かれている
+4. **カレント状態の差し替え**: `MOCK_CURRENT_SESSION` / `MOCK_CURRENT_WINDOW` / `MOCK_CURRENT_PATH` を export すると `display-message -p` の戻り値を制御できる
+5. **クリーンアップ**: `setup_test_env()` と `teardown_test_env()` でテストごとにモックデータディレクトリごと削除する
 
 ### テスト実行フロー
 

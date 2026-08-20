@@ -4,9 +4,8 @@
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$TEST_DIR/.." && pwd)"
 
-# モックファイルを読み込む
-# source を使って tmux モックを読み込むことで、tmux コマンドをオーバーライドする
-source "$TEST_DIR/mocks/tmux_mock.bash"
+# tmux のモックは source ではなく PATH 経由で効かせる（tests/mocks/tmux）。
+# テスト対象は別プロセスで起動するため、シェル関数のオーバーライドは届かない。
 
 # テスト用の環境変数設定
 setup_test_env() {
