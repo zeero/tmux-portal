@@ -92,6 +92,49 @@ teardown() {
     ! grep "set -w.*window-status-current-style" "$LOG_FILE"
 }
 
+@test "スタイル指定のみ: 元のセッションに戻るだけなのでスタイルは適用しない" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    # TEST_MODE=1 なので唯一の候補が自動選択される
+    echo "default-session" > "$MOCK_DIR/sessions"
+
+    run bash "$PORTAL_SCRIPT" --status-style "fg=black,bg=yellow"
+    [ "$status" -eq 0 ]
+
+    # 戻り先セッションの見た目は書き換えない（tmux set は一度も呼ばれない）
+    grep "attach-session -t default-session" "$LOG_FILE"
+    ! grep "^set " "$LOG_FILE"
+}
+
+@test "コマンド + スタイル指定: 選択したセッションにスタイルを適用してコマンド実行" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    # TEST_MODE=1 なので唯一の候補が自動選択される
+    echo "target-session" > "$MOCK_DIR/sessions"
+
+    run bash "$PORTAL_SCRIPT" --command "aider" --status-style "fg=black,bg=yellow"
+    [ "$status" -eq 0 ]
+
+    # スイッチャーで選ばれたセッションがスタイルとコマンドの適用先になる
+    grep "set -t target-session status-style fg=black,bg=yellow" "$LOG_FILE"
+    grep "set -w -t target-session window-status-current-style fg=yellow,bg=black,bold" "$LOG_FILE"
+    grep "new-window.*-t target-session aider" "$LOG_FILE"
+}
+
+@test "セッション + コマンド + スタイル指定: 全オプションを適用" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --status-style "fg=black,bg=yellow"
+    [ "$status" -eq 0 ]
+
+    grep "set -t session1 status-style fg=black,bg=yellow" "$LOG_FILE"
+    grep "set -w -t session1 window-status-current-style fg=yellow,bg=black,bold" "$LOG_FILE"
+    grep "new-window.*-t session1 aider" "$LOG_FILE"
+}
+
 @test "tmux内から実行" {
     export TMUX="test"
     run bash "$PORTAL_SCRIPT" --session "session1"
