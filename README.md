@@ -47,6 +47,7 @@ tmuxを再読み込み: `tmux source-file ~/.tmux.conf`
 | `-c, --command <cmd>` | 新規ウィンドウで実行するコマンド |
 | `--status-style <style>` | tmuxステータスバースタイル（例: `fg=black,bg=yellow`） |
 | `--window-status-current-style <style>` | 現在タブのスタイル（省略時は `--status-style` の fg/bg を入れ替えて自動設定） |
+| `-p, --window-prefix <str>` | 新規ウィンドウ名に付けるプリフィクス（前回付けたものは自動で置き換わる） |
 | `--direnv` | コマンド実行時に `direnv exec` 経由で環境変数をロード |
 | `-h, --help` | ヘルプメッセージを表示 |
 
@@ -115,6 +116,20 @@ tmux-portal -s aider --status-style "fg=black,bg=green" --window-status-current-
 > ```tmux
 > set -g status-left-length 20
 > ```
+
+### ウィンドウ名にエージェントの印を付ける
+
+新規ウィンドウは呼び出し元のウィンドウ名を引き継ぎます。`-p` を付けると、その名前の先頭に印を置けます。
+
+```bash
+# ウィンドウ名 "myproject" から実行すると "✻ myproject" になる
+tmux-portal -s claude -c claude -p '✻ '
+
+# そこから別のエージェントに移ると "❂ myproject" に置き換わる（印は積み上がらない）
+tmux-portal -s claude -c codex -p '❂ '
+```
+
+前回付けた印は tmux のウィンドウ変数に記録されるため、別のコマンドの印であっても取り除いてから付け直されます。ウィンドウ名を手動で変更した場合も、印が先頭に残っていれば置き換わります。
 
 ## Example Workflow
 

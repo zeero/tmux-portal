@@ -101,7 +101,26 @@ case "$command" in
         fi
         ;;
 
-    new-window|set)
+    show-options)
+        # オプション名は先頭が - でない引数（-wqv などのフラグは読み飛ばす）
+        option=""
+        while [[ $# -gt 0 ]]; do
+            case $1 in
+                -*)
+                    shift
+                    ;;
+                *)
+                    option="$1"
+                    shift
+                    ;;
+            esac
+        done
+        if [[ "$option" == "@portal-window-prefix" ]]; then
+            echo "${MOCK_WINDOW_PREFIX:-}"
+        fi
+        ;;
+
+    new-window|set|set-option)
         # 何もしない（モックなので実際の操作は行わない）
         exit 0
         ;;

@@ -284,27 +284,113 @@ EOF
     grep "new-window.*-n p:test-window" "$LOG_FILE"
 }
 
-@test "ウィンドウ名にプリフィクスを指定: 既にプリフィクスが含まれている場合は付与しない" {
+@test "ウィンドウ名のプリフィクス: 同じプリフィクスで再実行しても重複しない" {
     MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
     LOG_FILE="$MOCK_DIR/calls.log"
 
     export TMUX="test"
-    
-    # 1. 先頭にある場合
-    export MOCK_CURRENT_WINDOW="prefix:test-window"
-    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --window-prefix "prefix:"
+    export MOCK_CURRENT_WINDOW="A:test-window"
+    export MOCK_WINDOW_PREFIX="A:"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --window-prefix "A:"
     [ "$status" -eq 0 ]
-    grep "new-window.*-n prefix:test-window" "$LOG_FILE"
-    ! grep "new-window.*-n prefix:prefix:test-window" "$LOG_FILE"
-    
-    # 2. 途中に含まれている場合
-    rm -f "$LOG_FILE"
-    export MOCK_CURRENT_WINDOW="my-prefix:test"
-    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --window-prefix "prefix:"
-    [ "$status" -eq 0 ]
-    # 既に "prefix:" が含まれているので付与されない
-    grep "new-window.*-n my-prefix:test" "$LOG_FILE"
-    ! grep "new-window.*-n prefix:my-prefix:test" "$LOG_FILE"
+    grep "new-window.*-n A:test-window" "$LOG_FILE"
+    ! grep "new-window.*-n A:A:test-window" "$LOG_FILE"
 
     unset MOCK_CURRENT_WINDOW
+    unset MOCK_WINDOW_PREFIX
+}
+
+@test "ウィンドウ名のプリフィクス: 別コマンドのプリフィクスは置き換わる" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    export TMUX="test"
+    export MOCK_CURRENT_WINDOW="A:test-window"
+    export MOCK_WINDOW_PREFIX="A:"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --window-prefix "B:"
+    [ "$status" -eq 0 ]
+    grep "new-window.*-n B:test-window" "$LOG_FILE"
+    ! grep "new-window.*-n B:A:test-window" "$LOG_FILE"
+
+    unset MOCK_CURRENT_WINDOW
+    unset MOCK_WINDOW_PREFIX
+}
+
+@test "ウィンドウ名のプリフィクス: 手動改名でプリフィクスが残っていても置き換わる" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    export TMUX="test"
+    export MOCK_CURRENT_WINDOW="A:renamed"
+    export MOCK_WINDOW_PREFIX="A:"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --window-prefix "B:"
+    [ "$status" -eq 0 ]
+    grep "new-window.*-n B:renamed" "$LOG_FILE"
+
+    unset MOCK_CURRENT_WINDOW
+    unset MOCK_WINDOW_PREFIX
+}
+
+@test "ウィンドウ名のプリフィクス: 手動改名でプリフィクスが消えていればそのまま付与する" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    export TMUX="test"
+    export MOCK_CURRENT_WINDOW="renamed"
+    export MOCK_WINDOW_PREFIX="A:"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --window-prefix "B:"
+    [ "$status" -eq 0 ]
+    grep "new-window.*-n B:renamed" "$LOG_FILE"
+
+    unset MOCK_CURRENT_WINDOW
+    unset MOCK_WINDOW_PREFIX
+}
+
+@test "ウィンドウ名のプリフィクス: プリフィクス未指定なら取り除くだけ" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    export TMUX="test"
+    export MOCK_CURRENT_WINDOW="A:test-window"
+    export MOCK_WINDOW_PREFIX="A:"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider"
+    [ "$status" -eq 0 ]
+    grep "new-window.*-n test-window" "$LOG_FILE"
+    ! grep "new-window.*-n A:test-window" "$LOG_FILE"
+
+    unset MOCK_CURRENT_WINDOW
+    unset MOCK_WINDOW_PREFIX
+}
+
+@test "ウィンドウ名のプリフィクス: 絵文字のプリフィクスでも置き換わる" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    export TMUX="test"
+    export MOCK_CURRENT_WINDOW="❂ test-window"
+    export MOCK_WINDOW_PREFIX="❂ "
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "gemini" --window-prefix "♊ "
+    [ "$status" -eq 0 ]
+    grep "new-window.*-n ♊ test-window" "$LOG_FILE"
+    ! grep "new-window.*-n ♊ ❂ test-window" "$LOG_FILE"
+
+    unset MOCK_CURRENT_WINDOW
+    unset MOCK_WINDOW_PREFIX
+}
+
+@test "ウィンドウ名のプリフィクス: 付与したプリフィクスをウィンドウに記録する" {
+    MOCK_DIR="${TMPDIR:-/tmp}/tmux-portal-test"
+    LOG_FILE="$MOCK_DIR/calls.log"
+
+    export TMUX="test"
+
+    run bash "$PORTAL_SCRIPT" --session "session1" --command "aider" --window-prefix "A:"
+    [ "$status" -eq 0 ]
+    grep "set-option -w -t session1 @portal-window-prefix A:" "$LOG_FILE"
 }

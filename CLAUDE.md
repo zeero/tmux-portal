@@ -87,7 +87,15 @@ tmux-portal/
 
 新規ウィンドウは「呼び出し元のウィンドウ名」を引き継ぐ。`get_current_window_name()` は**セッション作成より前**に呼ぶ必要がある（作成後だとカレントセッションが変わり、取得対象がズレる）。
 
-`--window-prefix` は、取得した名前にプリフィクスが**部分文字列として含まれていなければ**先頭に付与する。往復（A↔B）で `[AI][AI]foo` のように重複するのを避けるための判定。
+`--window-prefix` は「**前回付けたプリフィクスを取り除いてから付け直す**」方式。ウィンドウ作成後に、付けたプリフィクスを tmux のウィンドウ変数 `@portal-window-prefix` へ記録し（`set_window_prefix()`）、次回起動時にそれを読んで先頭から剥がす（`get_current_window_prefix()`）。
+
+この方式を採る理由:
+
+- プリフィクスの一覧を持たなくても、別コマンドのプリフィクス（`❂ ` の上に `♊ `）が積み上がらない
+- 手動で `rename-window` してもプリフィクスが先頭に残っていれば剥がせる。プリフィクスごと消されていた場合は先頭一致しないので、何も剥がさず新しいプリフィクスを付ける
+- 同じプリフィクスの再実行は「剥がして同じものを付ける」ので結果が変わらない
+
+`--window-prefix` 未指定でも剥がす処理は走る（前のコマンドの印が残ったままになるのを避けるため）。記録は `-c` でウィンドウを作った場合のみ行う。
 
 ### ステータスラインのカスタマイズ
 
@@ -109,7 +117,7 @@ tmux-portal/
 1. **tests/mocks/tmux**: 実行可能なモックスクリプト。`setup()` が PATH の先頭に `tests/mocks` を追加することで、実際の `tmux` の代わりに実行される。**モックはシェル関数ではなく実行可能ファイルでなければならない**（テスト対象を `run bash "$PORTAL_SCRIPT"` と別プロセスで起動するため、`export -f` しない関数定義は届かない）
 2. **共有データ**: モックは `${TMPDIR:-/tmp}/tmux-portal-test` にセッション一覧（`sessions`）と全コマンドの呼び出しログ（`calls.log`）を保存する。tmux 引数のアサーションは `calls.log` を grep して行う
 3. **初期セッション**: `sessions` が空のとき `session1` / `session2` / `ai-project` を自動投入する。テストはこの3つを前提に書かれている
-4. **カレント状態の差し替え**: `MOCK_CURRENT_SESSION` / `MOCK_CURRENT_WINDOW` / `MOCK_CURRENT_PATH` を export すると `display-message -p` の戻り値を制御できる
+4. **カレント状態の差し替え**: `MOCK_CURRENT_SESSION` / `MOCK_CURRENT_WINDOW` / `MOCK_CURRENT_PATH` を export すると `display-message -p` の戻り値を制御できる。`MOCK_WINDOW_PREFIX` は `show-options -wqv @portal-window-prefix` の戻り値を制御する
 5. **クリーンアップ**: `setup_test_env()` と `teardown_test_env()` でテストごとにモックデータディレクトリごと削除する
 
 ### テスト実行フロー

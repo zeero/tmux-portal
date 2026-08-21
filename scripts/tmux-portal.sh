@@ -9,6 +9,9 @@ USE_DIRENV=false
 WINDOW_PREFIX=""
 START_DIR=$(tmux display-message -p '#{pane_current_path}' 2>/dev/null || pwd)
 
+# 付与したプリフィクスの記録先（tmux のウィンドウ変数）
+WINDOW_PREFIX_OPTION="@portal-window-prefix"
+
 # ヘルプメッセージを表示
 show_help() {
     cat <<EOF
@@ -19,7 +22,7 @@ tmux-portalは、AIエージェントセッションを効率的に管理する�
 OPTIONS:
     -s, --session <name>        セッション名を指定（なければ作成）
     -c, --command <cmd>         新規ウィンドウで実行するコマンド
-    -p, --window-prefix <str>   新規ウィンドウ名のプリフィクスを指定
+    -p, --window-prefix <str>   新規ウィンドウ名のプリフィクスを指定（前回付けたものは置き換え）
     --status-style <style>                ステータスラインスタイル（tmux形式）
     --window-status-current-style <style> 現在タブのスタイル（省略時はstatus-styleのfg/bgを入れ替えて自動設定）
     --direnv                   コマンド実行時にdirenv経由で環境変数をロード
@@ -135,6 +138,24 @@ get_current_window_name() {
     fi
 }
 
+# 現在のウィンドウに tmux-portal が付けたプリフィクスを取得
+get_current_window_prefix() {
+    if [ -n "$TMUX" ]; then
+        tmux show-options -wqv "$WINDOW_PREFIX_OPTION"
+    else
+        echo ""
+    fi
+}
+
+# 付与したプリフィクスをウィンドウに記録（次回起動時に取り除くため）
+set_window_prefix() {
+    local session_name="$1"
+    local prefix="$2"
+
+    # new-window 直後はセッションのカレントウィンドウが新規ウィンドウになっている
+    tmux set-option -w -t "$session_name" "$WINDOW_PREFIX_OPTION" "$prefix"
+}
+
 # 新規ウィンドウでコマンド実行
 create_window_with_command() {
     local session_name="$1"
@@ -247,13 +268,15 @@ main() {
     fi
 
     # セッション作成後はターゲット解決がズレるのでウィンドウ名は先に取得する
-    local window_name
+    local window_name previous_prefix
     window_name=$(get_current_window_name)
 
-    # プリフィクスが指定されている場合は付与（既にどこかに含まれている場合はスキップ）
-    if [ -n "$WINDOW_PREFIX" ] && [[ "$window_name" != *"$WINDOW_PREFIX"* ]]; then
-        window_name="${WINDOW_PREFIX}${window_name}"
+    # 前のコマンドが付けたプリフィクスは、積み上がらないよう取り除いてから付け直す
+    previous_prefix=$(get_current_window_prefix)
+    if [ -n "$previous_prefix" ]; then
+        window_name="${window_name#"$previous_prefix"}"
     fi
+    window_name="${WINDOW_PREFIX}${window_name}"
 
     # セッションが存在しない場合は作成
     if ! session_exists "$SESSION"; then
@@ -268,6 +291,7 @@ main() {
     # ケース3: コマンド指定あり
     if [ -n "$COMMAND" ]; then
         create_window_with_command "$SESSION" "$COMMAND" "$window_name" "$START_DIR" "$USE_DIRENV"
+        set_window_prefix "$SESSION" "$WINDOW_PREFIX"
     fi
 
     # ウィンドウ作成後に再設定（new-window でカレントウィンドウが変わるため）

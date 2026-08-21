@@ -47,6 +47,7 @@ Reload tmux: `tmux source-file ~/.tmux.conf`
 | `-c, --command <cmd>` | Command to run in new window |
 | `--status-style <style>` | tmux status bar style (e.g., `fg=black,bg=yellow`) |
 | `--window-status-current-style <style>` | Current tab style (defaults to swapped fg/bg from `--status-style`) |
+| `-p, --window-prefix <str>` | Prefix for the new window name (any previously applied prefix is replaced) |
 | `--direnv` | Load environment variables via `direnv exec` when running commands |
 | `-h, --help` | Show help message |
 
@@ -115,6 +116,20 @@ When both `fg` and `bg` are specified in `--status-style`, the current tab (`win
 > ```tmux
 > set -g status-left-length 20
 > ```
+
+### Marking Windows with an Agent Badge
+
+A new window inherits the name of the window you launched from. `-p` puts a badge in front of that name.
+
+```bash
+# Running from a window named "myproject" gives you "✻ myproject"
+tmux-portal -s claude -c claude -p '✻ '
+
+# Moving on to another agent replaces it with "❂ myproject" (badges never stack)
+tmux-portal -s claude -c codex -p '❂ '
+```
+
+The badge applied last is recorded in a tmux window option, so a badge left by a different command is stripped before the new one is added. Renaming the window by hand still works, as long as the badge remains at the front.
 
 ## Example Workflow
 
