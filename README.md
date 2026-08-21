@@ -39,6 +39,51 @@ run-shell ~/.tmux/plugins/tmux-portal/portal.tmux
 
 tmuxを再読み込み: `tmux source-file ~/.tmux.conf`
 
+## Example Workflow
+
+AIエージェントを `agents` セッションに集約し、作業中のディレクトリのまま起動して、元のセッションに戻る、という流れです。
+
+### 1. キーバインドを登録する
+
+`~/.tmux.conf` に以下を追加し、`tmux source-file ~/.tmux.conf` で読み込みます。
+
+```tmux
+# エージェントを起動する
+bind C-c run-shell "#{TMUX_PLUGIN_MANAGER_PATH}tmux-portal/scripts/tmux-portal.sh -s agents -c claude -p '✻ ' --status-style 'fg=black,bg=orange' --direnv"
+bind C-f run-shell "#{TMUX_PLUGIN_MANAGER_PATH}tmux-portal/scripts/tmux-portal.sh -s agents -c 'claude --model fable' -p '🦋 ' --status-style 'fg=black,bg=orange' --direnv"
+bind C-x run-shell "#{TMUX_PLUGIN_MANAGER_PATH}tmux-portal/scripts/tmux-portal.sh -s agents -c codex -p '❂ ' --status-style 'fg=black,bg=orange' --direnv"
+
+# セッションを行き来する
+bind W run-shell "#{TMUX_PLUGIN_MANAGER_PATH}tmux-portal/scripts/tmux-portal.sh"
+```
+
+`#{TMUX_PLUGIN_MANAGER_PATH}` は tpm がプラグイン置き場のパスに展開します。手動インストールの場合は `~/.tmux/plugins/tmux-portal/scripts/tmux-portal.sh` に読み替えてください。
+
+どのエージェントを動かしているウィンドウかは、`-p` で付けた印がウィンドウ名に出ます。
+
+### 2. `prefix + C-c` で Claude を起動する
+
+`myproject` ディレクトリで作業しているウィンドウで押します。
+
+- `agents` セッションが作られ、そこへ移動する
+- `myproject` と同じディレクトリで新規ウィンドウが開き、`claude` が起動する
+- ウィンドウ名は元のウィンドウ名を引き継いで `✻ myproject` になる
+- ステータスバーがオレンジになり、エージェント用のセッションにいることが分かる
+
+### 3. `prefix + C-x` で同じディレクトリに Codex を追加する
+
+`✻ myproject` ウィンドウにいるまま押します。
+
+- 同じ `agents` セッションに、同じディレクトリで新規ウィンドウが開き、`codex` が起動する
+- ウィンドウ名は `✻ ` が取り除かれて `❂ myproject` になる
+- Claude のウィンドウは残るので、tmux のウィンドウ切り替えで両方を行き来できる
+
+### 4. `prefix + W` で元のセッションに戻る
+
+- `agents` 以外のセッションへ移動する（候補が1つなら選択メニューは出ない）
+- エージェントは `agents` セッションで動き続ける
+- もう一度 `prefix + W` を押せば `agents` に戻れる
+
 ## Usage
 
 | Option | Description |
@@ -54,7 +99,7 @@ tmuxを再読み込み: `tmux source-file ~/.tmux.conf`
 ### AIエージェント専用のセッションと相互に切り替える
 
 ```bash
-tmux-portal -s claude -c claude --status-style "fg=black,bg=orange"
+tmux-portal -s agents -c claude --status-style "fg=black,bg=orange"
 
 # 通常セッションに戻る
 tmux-portal
@@ -86,7 +131,7 @@ tmux-portal -s my-project
 tmux-portal --command claude
 
 # 特定のセッションでclaudeを起動
-tmux-portal -s claude -c claude
+tmux-portal -s agents -c claude
 ```
 
 対象セッション内に新規ウィンドウを作成してコマンドを実行します。
@@ -94,11 +139,11 @@ tmux-portal -s claude -c claude
 ### ステータススタイルによる視覚的な識別
 
 ```bash
-# Claudeセッションを黄色のステータスバーで色分け
+# エージェント用セッションを黄色のステータスバーで色分け
 # → 現在タブの文字色は fg=yellow,bg=black に自動設定される
-tmux-portal -s claude --status-style "fg=black,bg=yellow"
+tmux-portal -s agents --status-style "fg=black,bg=yellow"
 
-# Codexセッションには別の色を設定
+# エージェントごとにセッションを分ける場合は、セッションごとに色を変えられる
 tmux-portal -s codex --status-style "fg=white,bg=blue"
 
 # 現在タブのスタイルを明示指定したい場合
@@ -123,25 +168,13 @@ tmux-portal -s aider --status-style "fg=black,bg=green" --window-status-current-
 
 ```bash
 # ウィンドウ名 "myproject" から実行すると "✻ myproject" になる
-tmux-portal -s claude -c claude -p '✻ '
+tmux-portal -s agents -c claude -p '✻ '
 
-# そこから別のエージェントに移ると "❂ myproject" に置き換わる（印は積み上がらない）
-tmux-portal -s claude -c codex -p '❂ '
+# そのウィンドウから別のエージェントを起動すると "❂ myproject" になる（印は積み上がらない）
+tmux-portal -s agents -c codex -p '❂ '
 ```
 
 前回付けた印は tmux のウィンドウ変数に記録されるため、別のコマンドの印であっても取り除いてから付け直されます。ウィンドウ名を手動で変更した場合も、印が先頭に残っていれば置き換わります。
-
-## Example Workflow
-
-```bash
-# 異なるAIエージェント用に色分けされたセッションを設定
-tmux-portal -s claude -c claude --status-style "fg=black,bg=yellow"
-tmux-portal -s codex -c codex --status-style "fg=white,bg=blue"
-tmux-portal -s cursor -c cursor-agent --status-style "fg=black,bg=green"
-
-# その後、素早く切り替え
-tmux-portal  # 表示内容: codex, cursor（現在のセッションは除外）
-```
 
 ## Requirements
 

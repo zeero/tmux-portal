@@ -39,6 +39,51 @@ run-shell ~/.tmux/plugins/tmux-portal/portal.tmux
 
 Reload tmux: `tmux source-file ~/.tmux.conf`
 
+## Example Workflow
+
+Gather your AI agents into an `agents` session, launch them in whatever directory you are working in, and return to your original session.
+
+### 1. Register key bindings
+
+Add the following to `~/.tmux.conf` and reload with `tmux source-file ~/.tmux.conf`.
+
+```tmux
+# Launch an agent
+bind C-c run-shell "#{TMUX_PLUGIN_MANAGER_PATH}tmux-portal/scripts/tmux-portal.sh -s agents -c claude -p '✻ ' --status-style 'fg=black,bg=orange' --direnv"
+bind C-f run-shell "#{TMUX_PLUGIN_MANAGER_PATH}tmux-portal/scripts/tmux-portal.sh -s agents -c 'claude --model fable' -p '🦋 ' --status-style 'fg=black,bg=orange' --direnv"
+bind C-x run-shell "#{TMUX_PLUGIN_MANAGER_PATH}tmux-portal/scripts/tmux-portal.sh -s agents -c codex -p '❂ ' --status-style 'fg=black,bg=orange' --direnv"
+
+# Move between sessions
+bind W run-shell "#{TMUX_PLUGIN_MANAGER_PATH}tmux-portal/scripts/tmux-portal.sh"
+```
+
+tpm expands `#{TMUX_PLUGIN_MANAGER_PATH}` to the plugin directory. For a manual installation, use `~/.tmux/plugins/tmux-portal/scripts/tmux-portal.sh` instead.
+
+Which agent a given window is running shows up as the badge added by `-p`.
+
+### 2. Press `prefix + C-c` to launch Claude
+
+Press it from the window where you are working in `myproject`.
+
+- The `agents` session is created and you are switched to it
+- A new window opens in the same directory as `myproject` and runs `claude`
+- The window inherits the original window name and becomes `✻ myproject`
+- The status bar turns orange, showing you are in the agent session
+
+### 3. Press `prefix + C-x` to add Codex in the same directory
+
+Press it while still in the `✻ myproject` window.
+
+- A new window opens in the same `agents` session and the same directory, running `codex`
+- The window name becomes `❂ myproject` — the `✻ ` badge is stripped, not stacked
+- The Claude window stays open, so you can move between the two with tmux window switching
+
+### 4. Press `prefix + W` to return to your original session
+
+- Switches to a session other than `agents` (no menu appears when there is only one candidate)
+- The agents keep running in the `agents` session
+- Press `prefix + W` again to go back to `agents`
+
 ## Usage
 
 | Option | Description |
@@ -54,7 +99,7 @@ Reload tmux: `tmux source-file ~/.tmux.conf`
 ### Switch between a dedicated AI agent session and regular sessions
 
 ```bash
-tmux-portal -s claude -c claude --status-style "fg=black,bg=orange"
+tmux-portal -s agents -c claude --status-style "fg=black,bg=orange"
 
 # Return to regular session
 tmux-portal
@@ -86,7 +131,7 @@ If the session doesn't exist, tmux-portal creates it before switching.
 tmux-portal --command claude
 
 # Launch claude in a specific session
-tmux-portal -s claude -c claude
+tmux-portal -s agents -c claude
 ```
 
 Creates a new window in the target session and runs the command.
@@ -94,11 +139,11 @@ Creates a new window in the target session and runs the command.
 ### Visual Differentiation with Status Styles
 
 ```bash
-# Color-code your Claude session with yellow status bar
+# Color-code your agent session with a yellow status bar
 # → Current tab style is auto-set to fg=yellow,bg=black
-tmux-portal -s claude --status-style "fg=black,bg=yellow"
+tmux-portal -s agents --status-style "fg=black,bg=yellow"
 
-# Different color for Codex session
+# If you prefer one session per agent, give each session its own color
 tmux-portal -s codex --status-style "fg=white,bg=blue"
 
 # Explicitly specify the current tab style
@@ -123,25 +168,13 @@ A new window inherits the name of the window you launched from. `-p` puts a badg
 
 ```bash
 # Running from a window named "myproject" gives you "✻ myproject"
-tmux-portal -s claude -c claude -p '✻ '
+tmux-portal -s agents -c claude -p '✻ '
 
-# Moving on to another agent replaces it with "❂ myproject" (badges never stack)
-tmux-portal -s claude -c codex -p '❂ '
+# Launching another agent from that window gives you "❂ myproject" (badges never stack)
+tmux-portal -s agents -c codex -p '❂ '
 ```
 
 The badge applied last is recorded in a tmux window option, so a badge left by a different command is stripped before the new one is added. Renaming the window by hand still works, as long as the badge remains at the front.
-
-## Example Workflow
-
-```bash
-# Set up color-coded sessions for different AI agents
-tmux-portal -s claude -c claude --status-style "fg=black,bg=yellow"
-tmux-portal -s codex -c codex --status-style "fg=white,bg=blue"
-tmux-portal -s cursor -c cursor-agent --status-style "fg=black,bg=green"
-
-# Later, quickly switch between them
-tmux-portal  # Shows: codex, cursor (excludes current session)
-```
 
 ## Requirements
 
